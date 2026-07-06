@@ -2,7 +2,7 @@
 name = "freateoj-buildwiki"
 version = "0.1.0"
 edition = "2021"
-description = "Static wiki builder with web admin interface, SQLite, and HTML output"
+description = "Static wiki builder - generates HTML from SQLite via Markdown"
 license = "MIT"
 
 [[bin]]
@@ -12,7 +12,6 @@ path = "src/main.rs"
 [dependencies]
 rusqlite = { version = "0.40", features = ["bundled"] }
 pulldown-cmark = "0.13"
-tiny_http = "0.12"
 resvg = "0.47"
 tiny-skia = "0.12"
 ico = "0.5"

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use anyhow::{Context, Result};
 use rusqlite::{params, Connection};
 use std::collections::HashMap;
@@ -6,7 +7,6 @@ use std::collections::HashMap;
 pub struct Section {
     pub id: i64,
     pub title: String,
-    #[allow(dead_code)]
     pub sort_order: i64,
 }
 
@@ -112,7 +112,6 @@ pub fn get_all_settings(conn: &Connection) -> Result<HashMap<String, String>> {
     Ok(map)
 }
 
-#[allow(dead_code)]
 pub fn get_setting(conn: &Connection, key: &str) -> Result<String> {
     let val = conn.query_row(
         "SELECT value FROM settings WHERE key=?1",
