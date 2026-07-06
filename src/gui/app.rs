@@ -13,6 +13,7 @@ pub enum ThemeMode { Dark, Light, Custom }
 #[derive(Clone, Debug)]
 pub struct Theme {
     pub name: String,
+    #[allow(dead_code)]
     pub mode: ThemeMode,
     pub bg_primary: Color32,
     pub bg_secondary: Color32,
@@ -25,11 +26,13 @@ pub struct Theme {
     pub text_muted: Color32,
     pub text_on_accent: Color32,
     pub accent: Color32,
+    #[allow(dead_code)]
     pub accent_hover: Color32,
     pub accent_subtle: Color32,
     pub success: Color32,
     pub danger: Color32,
     pub border: Color32,
+    #[allow(dead_code)]
     pub border_focus: Color32,
     pub sidebar_width: f32,
     pub corner_radius: u8,
@@ -137,8 +140,6 @@ impl Theme {
 
     pub fn cr(&self) -> CornerRadius { CornerRadius::same(self.corner_radius) }
     pub fn cr_sm(&self) -> CornerRadius { CornerRadius::same((self.corner_radius as f32 * 0.6) as u8) }
-    pub fn margin_same(&self, v: i8) -> Margin { Margin::same(v) }
-    pub fn margin_sym(&self, x: i8, y: i8) -> Margin { Margin::symmetric(x, y) }
 }
 
 // ─── Tabs ────────────────────────────────────────────────────────────────────
@@ -160,7 +161,7 @@ impl Tab {
 #[derive(Clone)]
 struct Notif { msg: String, kind: NotifKind, time: f32 }
 #[derive(Clone, PartialEq)]
-enum NotifKind { Success, Error, Info }
+enum NotifKind { Success, Error, #[allow(dead_code)] Info }
 
 // ─── App State ───────────────────────────────────────────────────────────────
 
@@ -172,7 +173,7 @@ pub struct WikiApp {
     seo_og_image: String, seo_og_width: String, seo_og_height: String,
     seo_twitter_site: String, seo_twitter_card: String, seo_robots: String,
     global_seo: HashMap<String, String>, favicon_svg: String,
-    current_tab: Tab, theme: Theme, theme_idx: usize, show_theme_picker: bool,
+    current_tab: Tab, theme: Theme, show_theme_picker: bool,
     log_messages: Vec<String>, build_progress: f32, build_status: String, preview_html: String,
     show_add_section: bool, show_add_page: bool, show_delete_confirm: bool, show_settings: bool,
     new_section_name: String, new_page_section_idx: usize, new_page_title: String, new_page_slug: String,
@@ -200,8 +201,8 @@ impl WikiApp {
             edit_keywords: String::new(), edit_content: String::new(),
             seo_og_image: String::new(), seo_og_width: String::new(), seo_og_height: String::new(),
             seo_twitter_site: String::new(), seo_twitter_card: String::new(), seo_robots: String::new(),
-            global_seo, favicon_svg, current_tab: Tab::Editor,
-            theme: Theme::dark(), theme_idx: 0, show_theme_picker: false,
+            global_seo, favicon_svg,             current_tab: Tab::Editor,
+            theme: Theme::dark(), show_theme_picker: false,
             log_messages: Vec::new(), build_progress: 0.0, build_status: "Ready".into(),
             preview_html: String::new(),
             show_add_section: false, show_add_page: false, show_delete_confirm: false, show_settings: false,

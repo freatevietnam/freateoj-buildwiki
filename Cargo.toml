@@ -40,7 +40,7 @@ chrono = "0.4"
 ashpd = { version = "0.9", optional = true }
 
 [features]
-default = []
+default = ["x11"]
 x11 = ["eframe/x11"]
 wayland = ["eframe/wayland"]
 
