@@ -1,5 +1,6 @@
 mod build;
 mod db;
+mod server;
 mod svg;
 
 use anyhow::Result;
@@ -7,7 +8,7 @@ use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(name = "freateoj-wiki")]
-#[command(about = "Static wiki builder - generates HTML from SQLite via Markdown")]
+#[command(about = "Static wiki builder - edit, build, and preview locally")]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
@@ -21,7 +22,7 @@ enum Commands {
         #[arg(short, long, default_value = "wiki.db")]
         db: String,
     },
-    /// Build static HTML output
+    /// Build static HTML output (no server)
     Build {
         /// Database path
         #[arg(short, long, default_value = "wiki.db")]
@@ -29,6 +30,18 @@ enum Commands {
         /// Output directory for static files
         #[arg(short, long, default_value = "build")]
         output: String,
+    },
+    /// Start dev server with web editor + live preview
+    Dev {
+        /// Database path
+        #[arg(short, long, default_value = "wiki.db")]
+        db: String,
+        /// Output directory for static files
+        #[arg(short, long, default_value = "build")]
+        output: String,
+        /// Port number
+        #[arg(short, long, default_value_t = 8080)]
+        port: u16,
     },
 }
 
@@ -49,15 +62,14 @@ fn main() -> Result<()> {
             build::build(&settings, &sections, &pages, &output)?;
             println!("Build complete! Output: {}", output);
         }
+        Some(Commands::Dev { db, output, port }) => {
+            db::init_db(&db)?;
+            server::serve(&db, &output, port)?;
+        }
         None => {
-            // Default: build with defaults
+            // Default: dev server
             db::init_db("wiki.db")?;
-            let conn = db::get_conn("wiki.db")?;
-            let settings = db::get_all_settings(&conn)?;
-            let sections = db::get_all_sections(&conn)?;
-            let pages = db::get_all_pages(&conn)?;
-            build::build(&settings, &sections, &pages, "build")?;
-            println!("Build complete! Output: build/");
+            server::serve("wiki.db", "build", 8080)?;
         }
     }
 
