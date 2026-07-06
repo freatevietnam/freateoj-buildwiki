@@ -1,6 +1,5 @@
 mod build;
 mod db;
-mod gui;
 mod server;
 mod svg;
 
@@ -9,7 +8,7 @@ use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(name = "freateoj-wiki")]
-#[command(about = "FreateOJ Wiki Builder - Static wiki with GUI, SQLite, and HTML output")]
+#[command(about = "FreateOJ Wiki Builder - Build and serve a wiki with web admin interface")]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
@@ -25,8 +24,11 @@ enum Commands {
         /// Output directory
         #[arg(short, long, default_value = "build")]
         output: String,
+        /// Rebuild after changes (watch mode)
+        #[arg(short, long)]
+        watch: bool,
     },
-    /// Start preview server
+    /// Start web server with admin interface
     Serve {
         /// Database path
         #[arg(short, long, default_value = "wiki.db")]
@@ -38,22 +40,13 @@ enum Commands {
         #[arg(short, long, default_value_t = 8080)]
         port: u16,
     },
-    /// Launch GUI
-    Gui {
-        /// Database path
-        #[arg(short, long, default_value = "wiki.db")]
-        db: String,
-        /// Output directory
-        #[arg(short, long, default_value = "build")]
-        output: String,
-    },
 }
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Some(Commands::Build { db, output }) => {
+        Some(Commands::Build { db, output, watch: _ }) => {
             println!("Building wiki...");
             db::init_db(&db)?;
             let conn = db::get_conn(&db)?;
@@ -61,26 +54,36 @@ fn main() -> Result<()> {
             let sections = db::get_all_sections(&conn)?;
             let pages = db::get_all_pages(&conn)?;
             build::build(&settings, &sections, &pages, &output)?;
-            println!("Build complete!");
+            println!("Build complete! Output: {}", output);
         }
         Some(Commands::Serve { db, output, port }) => {
-            println!("Building and serving...");
+            println!("Initializing...");
             db::init_db(&db)?;
-            let conn = db::get_conn(&db)?;
-            let settings = db::get_all_settings(&conn)?;
-            let sections = db::get_all_sections(&conn)?;
-            let pages = db::get_all_pages(&conn)?;
-            build::build(&settings, &sections, &pages, &output)?;
-            println!("Starting server on port {}...", port);
-            server::serve(&output, port)?;
-        }
-        Some(Commands::Gui { db, output }) => {
-            gui::run_gui(&db, &output)?;
+            {
+                let conn = db::get_conn(&db)?;
+                let settings = db::get_all_settings(&conn)?;
+                let sections = db::get_all_sections(&conn)?;
+                let pages = db::get_all_pages(&conn)?;
+                if let Err(e) = build::build(&settings, &sections, &pages, &output) {
+                    eprintln!("Initial build warning: {}", e);
+                }
+            }
+            server::serve(&db, &output, port)?;
         }
         None => {
-            // Default: launch GUI
+            // Default: serve with defaults
+            println!("Starting default server...");
             db::init_db("wiki.db")?;
-            gui::run_gui("wiki.db", "build")?;
+            {
+                let conn = db::get_conn("wiki.db")?;
+                let settings = db::get_all_settings(&conn)?;
+                let sections = db::get_all_sections(&conn)?;
+                let pages = db::get_all_pages(&conn)?;
+                if let Err(e) = build::build(&settings, &sections, &pages, "build") {
+                    eprintln!("Initial build warning: {}", e);
+                }
+            }
+            server::serve("wiki.db", "build", 8080)?;
         }
     }
 
