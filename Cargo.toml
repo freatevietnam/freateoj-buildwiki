@@ -1,0 +1,50 @@
+[package]
+name = "freateoj-buildwiki"
+version = "0.1.0"
+edition = "2021"
+description = "Single-file wiki builder with GUI, SQLite, and static HTML output"
+license = "MIT"
+
+[[bin]]
+name = "freateoj-wiki"
+path = "src/main.rs"
+
+[dependencies]
+# Database
+rusqlite = { version = "0.40", features = ["bundled"] }
+
+# Markdown
+pulldown-cmark = "0.13"
+
+# HTTP server
+tiny_http = "0.12"
+
+# SVG to ICO
+resvg = "0.47"
+tiny-skia = "0.12"
+ico = "0.5"
+
+# GUI - glow backend avoids wgpu/windows crate conflicts on Windows
+eframe = { version = "0.34", default-features = false, features = ["default_fonts", "glow"] }
+egui = "0.34"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Utilities
+anyhow = "1"
+chrono = "0.4"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+# X11 support for Linux
+ashpd = { version = "0.9", optional = true }
+
+[features]
+default = []
+x11 = ["eframe/x11"]
+wayland = ["eframe/wayland"]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
